@@ -88,6 +88,20 @@ public class ConvertString {
    * @param input - the input text.
    * @return String
    */
+
+   /**
+ * Replaces all whitespace sequences with a single '?' character, preserving special sequences like '[]'.
+ */
+    public String removeWhiteSpace(String input) {
+      if (StringUtils.isEmpty(input)) {
+          return input;
+      }
+      // Replace all whitespace sequences with '?'
+      String result = input.replaceAll("\\s+", "?");
+      // Fix cases where '[]' is followed by an extra '?'
+      result = result.replace("[?]", "[]");
+      return result;
+    }
   public String removeTrailingAndLeadingWhitespaces(String input) {
     if (StringUtils.isEmpty(input)) {
       return input;
