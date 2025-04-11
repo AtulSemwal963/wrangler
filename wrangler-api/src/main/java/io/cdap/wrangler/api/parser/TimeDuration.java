@@ -45,7 +45,7 @@ public class TimeDuration implements Token {
     } else {
       throw new IllegalArgumentException("Invalid time duration format: " + input);
     }
-    this.milliseconds = (long)(Double.parseDouble(input) * multiplier);
+    this.milliseconds = (long) (Double.parseDouble(input) * multiplier);
   }
 
   public long getMilliseconds() {
@@ -67,4 +67,5 @@ public class TimeDuration implements Token {
     return new JsonPrimitive(milliseconds);
   }
 }
+
 

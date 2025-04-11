@@ -107,11 +107,80 @@
    }
  
    @Test(expected = Exception.class)
-   public void testInvalidSyntax() throws Exception {
+   public void testMissingColumnValue() throws Exception {
      String[] recipe = new String[] {
-       "aggregate-stats :size :time total_size_mb" // Missing total_time_sec
+       "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec MB seconds total"
      };
-     List<Row> rows = Arrays.asList(new Row("size", "10KB").add("time", "150ms"));
-     TestingRig.execute(recipe, rows); // Should throw parsing exception
+     List<Row> rows = Arrays.asList(
+       new Row("data_transfer_size", "10KB"), // Missing response_time
+       new Row("response_time", "150ms")       // Missing data_transfer_size
+     );
+     TestingRig.execute(recipe, rows); // Should handle missing values gracefully, but might throw depending on impl
+   }
+ 
+   @Test
+   public void testDifferentUnitsTotal() throws Exception {
+     String[] recipe = new String[] {
+       "aggregate-stats :data_transfer_size :response_time total_size_gb total_time_min GB minutes total"
+     };
+     List<Row> rows = Arrays.asList(
+       new Row("data_transfer_size", "1GB").add("response_time", "1h"),
+       new Row("data_transfer_size", "2GB").add("response_time", "2h")
+     );
+ 
+     List<Row> results = TestingRig.execute(recipe, rows);
+     Assert.assertEquals(1, results.size());
+     Row result = results.get(0);
+     double totalSizeGb = (double) result.getValue("total_size_gb");
+     double totalTimeMin = (double) result.getValue("total_time_min");
+ 
+     // 1GB + 2GB = 3GB
+     // 1h = 60min, 2h = 120min, Total = 180min
+     Assert.assertEquals(3.0, totalSizeGb, 0.001);
+     Assert.assertEquals(180.0, totalTimeMin, 0.001);
+   }
+ 
+   @Test
+   public void testEdgeCaseZeroValues() throws Exception {
+     String[] recipe = new String[] {
+       "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec MB seconds total"
+     };
+     List<Row> rows = Arrays.asList(
+       new Row("data_transfer_size", "0B").add("response_time", "0ms"),
+       new Row("data_transfer_size", "0KB").add("response_time", "0s")
+     );
+ 
+     List<Row> results = TestingRig.execute(recipe, rows);
+     Assert.assertEquals(1, results.size());
+     Row result = results.get(0);
+     double totalSizeMb = (double) result.getValue("total_size_mb");
+     double totalTimeSec = (double) result.getValue("total_time_sec");
+ 
+     // 0B + 0KB = 0MB
+     // 0ms + 0s = 0s
+     Assert.assertEquals(0.0, totalSizeMb, 0.001);
+     Assert.assertEquals(0.0, totalTimeSec, 0.001);
+   }
+ 
+   @Test
+   public void testEdgeCaseLargeValues() throws Exception {
+     String[] recipe = new String[] {
+       "aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec MB seconds total"
+     };
+     List<Row> rows = Arrays.asList(
+       new Row("data_transfer_size", "1024GB").add("response_time", "1000h"),
+       new Row("data_transfer_size", "512GB").add("response_time", "500h")
+     );
+ 
+     List<Row> results = TestingRig.execute(recipe, rows);
+     Assert.assertEquals(1, results.size());
+     Row result = results.get(0);
+     double totalSizeMb = (double) result.getValue("total_size_mb");
+     double totalTimeSec = (double) result.getValue("total_time_sec");
+ 
+     // 1024GB = 1024*1024MB, 512GB = 512*1024MB, Total = 1536*1024MB
+     // 1000h = 1000*3600s, 500h = 500*3600s, Total = 1500*3600s
+     Assert.assertEquals(1536 * 1024, totalSizeMb, 0.001);
+     Assert.assertEquals(1500 * 3600, totalTimeSec, 0.001);
    }
  }

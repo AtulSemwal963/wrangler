@@ -45,7 +45,7 @@ public class ByteSize implements Token {
     } else {
       throw new IllegalArgumentException("Invalid byte size format: " + input);
     }
-    this.bytes = (long)(Double.parseDouble(input) * multiplier);
+    this.bytes = (long) (Double.parseDouble(input) * multiplier);
   }
 
   public long getBytes() {
@@ -67,3 +67,4 @@ public class ByteSize implements Token {
     return new JsonPrimitive(bytes);
   }
 }
+

@@ -216,3 +216,12 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+#### ByteSize and TimeDuration Parsers (ADDITIONS)
+
+This repository includes two utility parsers, `ByteSize` and `TimeDuration`, designed to enhance directive configuration within Wrangler:
+
+- **ByteSize**: Parses and standardizes byte size specifications (e.g., "1KB", "2MB", "500GB") into a consistent numeric format. Use it in directives to define memory limits or data size thresholds. Example: `set-memory-limit 2MB` could leverage `ByteSize` to interpret the value as 2,097,152 bytes.
+- **TimeDuration**: Parses and normalizes time duration inputs (e.g., "1s", "30m", "2h") into a uniform representation. Apply it in directives for scheduling or timeout settings, such as `set-timeout 30s` to configure a 30-second duration.
+
+These parsers simplify the handling of human-readable size and time inputs, ensuring accurate processing in transformation recipes. See `ByteSizeTest.java` and `TimeDurationTest.java` for examples of supported formats and validation.
